@@ -7,9 +7,15 @@ use std::{path::Path, time::Duration};
 fn main() {
     let filename = Path::new("db.rrd");
 
+    #[cfg(feature = "chrono")]
+    let start = chrono::Utc::now();
+
+    #[cfg(not(feature = "chrono"))]
+    let start = std::time::SystemTime::now();
+
     create::create(
         filename,
-        chrono::Utc::now(),
+        start,
         Duration::from_secs(1),
         false,
         None,

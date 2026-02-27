@@ -9,6 +9,23 @@ use rrd::{
 };
 use std::time;
 
+#[cfg(not(feature = "chrono"))]
+trait FromTimestamp {
+    fn from_timestamp(secs: i64, nsecs: u32) -> Option<Self>
+    where
+        Self: Sized;
+}
+
+#[cfg(not(feature = "chrono"))]
+impl FromTimestamp for Timestamp {
+    fn from_timestamp(secs: i64, nsecs: u32) -> Option<Self> {
+        Some(
+            std::time::SystemTime::UNIX_EPOCH
+                + std::time::Duration::new(secs.try_into().ok()?, nsecs),
+        )
+    }
+}
+
 /// Steps from https://oss.oetiker.ch/rrdtool/tut/rrdtutorial.en.html
 
 #[test]

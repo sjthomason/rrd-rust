@@ -2,9 +2,15 @@ use rrd::{ops::create, ConsolidationFn};
 use std::{path::Path, time::Duration};
 
 fn main() {
+    #[cfg(feature = "chrono")]
+    let start = chrono::Utc::now();
+
+    #[cfg(not(feature = "chrono"))]
+    let start = std::time::SystemTime::now();
+
     let rc = create::create(
         Path::new("db.rrd"),
-        chrono::Utc::now(),
+        start,
         Duration::from_secs(1),
         false,
         None,

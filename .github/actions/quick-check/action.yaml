@@ -37,3 +37,8 @@ runs:
       shell: bash
       env:
         CARGO_TERM_COLOR: always
+    - name: Run tests without chrono
+      run: cargo test --no-default-features
+      shell: bash
+      env:
+        CARGO_TERM_COLOR: always

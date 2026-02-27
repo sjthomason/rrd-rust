@@ -7,12 +7,20 @@ use rrd::{
 
 fn main() {
     let filename = Path::new("db.rrd");
+
+    #[cfg(feature = "chrono")]
     let start = chrono::Utc::now();
+    #[cfg(feature = "chrono")]
     let end = start + chrono::TimeDelta::seconds(300);
+
+    #[cfg(not(feature = "chrono"))]
+    let start = std::time::SystemTime::now();
+    #[cfg(not(feature = "chrono"))]
+    let end = start + Duration::from_secs(300);
 
     create::create(
         filename,
-        start - chrono::TimeDelta::seconds(1),
+        start - Duration::from_secs(1),
         Duration::from_secs(1),
         false,
         None,
@@ -61,8 +69,8 @@ fn main() {
     match rc {
         Ok(data) => {
             println!("Ok");
-            println!("  Start: {}", data.start());
-            println!("  End: {}", data.end());
+            println!("  Start: {:?}", data.start());
+            println!("  End: {:?}", data.end());
             println!("  Step: {:?}", data.step());
             println!("  Rows: {}", data.row_count());
 
@@ -75,7 +83,7 @@ fn main() {
             println!("  Rows: {}", rows.len());
             for (i, row) in rows.iter().enumerate() {
                 println!(
-                    "    #{:03}: {} - {:.03}, {:.03}",
+                    "    #{:03}: {:?} - {:.03}, {:.03}",
                     i,
                     row.timestamp(),
                     row[0],

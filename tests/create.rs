@@ -2,11 +2,31 @@ use itertools::Itertools;
 use rrd::{ops::create, ops::info, ConsolidationFn};
 use std::{collections, time};
 
+#[cfg(not(feature = "chrono"))]
+trait AsTimestamp {
+    fn timestamp(&self) -> i64;
+}
+
+#[cfg(not(feature = "chrono"))]
+impl AsTimestamp for std::time::SystemTime {
+    fn timestamp(&self) -> i64 {
+        self.duration_since(std::time::SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64
+    }
+}
+
 #[test]
 fn create_all_ds_types() -> anyhow::Result<()> {
     let tempdir = tempfile::tempdir()?;
     let rrd_path = tempdir.path().join("rrd");
+
+    #[cfg(feature = "chrono")]
     let now = chrono::Utc::now();
+
+    #[cfg(not(feature = "chrono"))]
+    let now = std::time::SystemTime::now();
+
     create::create(
         &rrd_path,
         now,

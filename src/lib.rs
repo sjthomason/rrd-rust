@@ -24,20 +24,48 @@ pub mod util;
 
 // `chrono::DateTime` and `chrono::Utc` are used for timestamps, so this is provided to allow
 // easy access without a separate `chrono` dependency.
+#[cfg(feature = "chrono")]
 pub use chrono;
 
 /// The point in time associated with a data point.
+#[cfg(feature = "chrono")]
 pub type Timestamp = chrono::DateTime<chrono::Utc>;
+
+/// The point in time associated with a data point.
+#[cfg(not(feature = "chrono"))]
+pub type Timestamp = std::time::SystemTime;
 
 /// Internal extensions for [`Timestamp`]
 pub(crate) trait TimestampExt {
     /// Returns the timestamp as seconds since epoch.
     fn as_time_t(&self) -> rrd_sys::time_t;
+
+    /// Converts seconds since epoch into [`Timestamp`]
+    fn from_time_t(secs: rrd_sys::time_t) -> Self;
 }
 
+#[cfg(feature = "chrono")]
 impl TimestampExt for Timestamp {
     fn as_time_t(&self) -> rrd_sys::time_t {
         self.timestamp()
+    }
+
+    fn from_time_t(secs: rrd_sys::time_t) -> Self {
+        Timestamp::from_timestamp(secs, 0).expect("invalid timestamp")
+    }
+}
+
+#[cfg(not(feature = "chrono"))]
+impl TimestampExt for Timestamp {
+    fn as_time_t(&self) -> rrd_sys::time_t {
+        self.duration_since(std::time::SystemTime::UNIX_EPOCH)
+            .expect("system clock before unix epoch")
+            .as_secs() as rrd_sys::time_t
+    }
+
+    fn from_time_t(secs: rrd_sys::time_t) -> Self {
+        std::time::SystemTime::UNIX_EPOCH
+            + std::time::Duration::from_secs(secs.try_into().expect("invalid timestamp"))
     }
 }
 
